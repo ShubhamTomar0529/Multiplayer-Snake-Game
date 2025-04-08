@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Player schema for leaderboard
 const PlayerSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -31,22 +30,18 @@ const PlayerSchema = new mongoose.Schema({
     }
 });
 
-// Update the updatedAt field on save
 PlayerSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
     next();
 });
 
-// Method to update player stats after a game
 PlayerSchema.methods.updateStats = async function(score, won) {
     this.gamesPlayed += 1;
     
-    // Update score if the new score is higher than current score
     if (score > this.score) {
         this.score = score;
     }
     
-    // Increment wins if player won
     if (won) {
         this.wins += 1;
     }
