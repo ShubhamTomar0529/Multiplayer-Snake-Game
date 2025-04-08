@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnakeArena - Multiplayer Snake Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #1a2639;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            color: #f5f5f5;
+        }
+
+        /* Initial Loading Animation */
+        .initial-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1a2639;
+            z-index: 1000;
+            animation: fadeOut 0.5s ease-out 2.5s forwards;
+        }
+
+        .loader-text {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 50.6px;
+            font-weight: 700;
+            color: #3f72af;
+            text-shadow: 0 0 15px rgba(63, 114, 175, 0.6);
+            animation: scaleAndFade 2s ease-out forwards;
+            letter-spacing: 2px;
+        }
+
+        @keyframes scaleAndFade {
+            0% {
+                transform: scale(1);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        /* Header */
+        header {
+            width: 100%;
+            padding: 16.5px 44px;
+            background: #112240;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.8s ease-out 2.8s both;
+            opacity: 0;
+            border-bottom: 1px solid rgba(63, 114, 175, 0.3);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .logo {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 28.6px;
+            font-weight: 700;
+            color: #3f72af;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            letter-spacing: 1px;
+        }
+
+        .logo-img {
+            height: 44px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 26.4px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #f5f5f5;
+            font-weight: 500;
+            font-size: 18.2px;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+            position: relative;
+            padding: 4.4px 0;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: #3f72af;
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #3f72af;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            padding: 30px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 3.2s forwards;
+            min-height: calc(100vh - 80px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .login-container {
+            display: flex;
+            width: 920px;
+            border-radius: 13.2px;
+            overflow: hidden;
+            background: #112240;
+            box-shadow: 0 11px 27.5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(63, 114, 175, 0.3);
+            transform: scale(0.8);
+            opacity: 0;
+            animation: unfoldCard 1s ease-out 3.4s forwards;
+            max-height: 520px;
+            margin: 0 auto;
+        }
+
+        @keyframes unfoldCard {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .left-panel, 
+        .right-panel {
+            flex: 1;
+            padding: 33px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .left-panel {
+            background: #112240;
+            border-right: 1px solid rgba(63, 114, 175, 0.3);
+            width: 45%;
+        }
+
+        .right-panel {
+            background: #1e3a5f;
+            color: #f5f5f5;
+            text-align: center;
+            justify-content: center;
+            position: relative;
+            width: 55%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .right-panel::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(63, 114, 175, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(63, 114, 175, 0.08) 0%, transparent 50%);
+        }
+
+        .right-panel > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .right-panel h2 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 31.5px;
+            margin-bottom: 22px;
+            color: #3f72af;
+            letter-spacing: 1px;
+        }
+
+        .right-panel p {
+            font-size: 17.5px;
+            opacity: 0.9;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            font-weight: 300;
+            max-width: 90%;
+        }
+
+        .snake-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 29px;
+            color: #3f72af;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .snake-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background-color: #3f72af;
+        }
+
+        .input-field {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-field input, .input-field select {
+            width: 100%;
+            padding: 14px 15px;
+            border: 1px solid rgba(63, 114, 175, 0.4);
+            border-radius: 6px;
+            background: #1a2639;
+            color: #f5f5f5;
+            font-size: 16.9px;
+            transition: all 0.3s;
+        }
+
+        .input-field input::placeholder {
+            color: rgba(245, 245, 245, 0.5);
+            font-weight: 300;
+        }
+
+        .input-field input:focus, .input-field select:focus {
+            outline: none;
+            border-color: #3f72af;
+            box-shadow: 0 0 8px rgba(63, 114, 175, 0.4);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #1a2639;
+            border: 1px solid #3f72af;
+            color: #3f72af;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18.2px;
+            margin-top: 12px;
+            transition: all 0.3s ease-in-out;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: #3f72af;
+            transition: all 0.4s;
+            z-index: -1;
+        }
+
+        .btn:hover {
+            color: #1a2639;
+        }
+
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .snake-feature {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .snake-feature .icon {
+            min-width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(63, 114, 175, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 15px;
+            border: 1px solid rgba(63, 114, 175, 0.3);
+        }
+
+        .snake-feature h3 {
+            font-size: 16.9px;
+            margin-bottom: 3px;
+            color: #3f72af;
+            font-weight: 500;
+        }
+
+        .snake-feature p {
+            font-size: 14.5px;
+            margin: 0;
+            opacity: 0.7;
+            line-height: 1.4;
+        }
+
+        .snake-icon {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .snake-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        /* Game Screen Styles */
+        #gameScreen {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            background: #1a2639;
+            flex-direction: column;
+        }
+        
+        #gameScreen header {
+            opacity: 1;
+            animation: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .game-info {
+            background: rgba(30, 58, 95, 0.7);
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid rgba(63, 114, 175, 0.3);
+        }
+        
+        .game-info h3 {
+            margin: 0;
+            font-size: 17.6px;
+            font-weight: 500;
+            color: #f5f5f5;
+        }
+        
+        #gameCodeDisplay {
+            color: #3f72af;
+            font-weight: 600;
+        }
+        
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 80px);
+            padding: 20px;
+        }
+        
+        #canvas {
+            border: 2px solid rgba(63, 114, 175, 0.7);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Leaderboard Styles */
+        #leaderboardScreen {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            background: #1a2639;
+            flex-direction: column;
+            padding-bottom: 40px;
+        }
+
+        #leaderboardScreen header {
+            opacity: 1;
+            animation: none;
+        }
+
+        .leaderboard-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #112240;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(63, 114, 175, 0.3);
+        }
+
+        .leaderboard-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 28px;
+            color: #3f72af;
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .leaderboard-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: #3f72af;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            color: #f5f5f5;
+        }
+
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(63, 114, 175, 0.2);
+        }
+
+        .leaderboard-table th {
+            background-color: rgba(63, 114, 175, 0.1);
+            color: #3f72af;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .leaderboard-table tr:hover {
+            background-color: rgba(63, 114, 175, 0.05);
+        }
+
+        .back-button {
+            display: block;
+            width: 200px;
+            margin: 30px auto 0;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid #3f72af;
+            color: #3f72af;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .back-button:hover {
+            background: #3f72af;
+            color: #1a2639;
+        }
+    </style>
+</head>
+<body>
+    <div id="initialScreen">
+        <div class="initial-loader">
+            <div class="loader-text">SnakeArena</div>
+        </div>
+    
+        <header>
+            <div class="logo">
+                <img src="https://tinyurl.com/4tmjh4mp" alt="SnakeArena Logo" class="logo-img">
+                SnakeArena
+            </div>
+            <div class="nav-links">
+                <a href="#">Home</a>
+                <a href="#">Play</a>
+                <a href="#">Help</a>
+            </div>
+        </header>
+    
+        <div class="main-container">
+            <div class="login-container">
+                <div class="left-panel">
+                    <h2 class="snake-title">Play Game</h2>
+                    <div class="input-field">
+                        <input type="text" id="playerNameInput" placeholder="Enter Your Name" required />
+                    </div>
+                    <div class="input-field">
+                        <input type="text" id="gameCodeInput" placeholder="Enter Game Code" />
+                    </div>
+                    <button id="joinGameButton" class="btn" >Join Game</button>
+                    <button id="newGameButton" class="btn" >Create New Game</button>
+                    <button id="viewLeaderboardButton" class="btn" >View Leaderboard</button>
+                </div>
+    
+                <div class="right-panel">
+                    <div class="snake-icon">
+                        <img src="https://tinyurl.com/4tmjh4mp" alt="Snake Logo">
+                    </div>
+                    <h2>Welcome to SnakeArena</h2>
+                    <p>
+                        The ultimate multiplayer snake experience. Challenge your friends and prove your skills in intense head-to-head duels!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gameScreen">
+        <header>
+            <div class="logo">
+                <img src="https://tinyurl.com/4tmjh4mp" alt="SnakeArena Logo" class="logo-img">
+                SnakeArena
+            </div>
+            <div class="game-info">
+                <h3>Game Code: <span id="gameCodeDisplay"></span></h3>
+            </div>
+        </header>
+        
+        <div class="game-container">
+            <canvas id="canvas"></canvas>   
+        </div>
+    </div>
+
+    <div id="leaderboardScreen">
+        <header>
+            <div class="logo">
+                <img src="https://tinyurl.com/4tmjh4mp" alt="SnakeArena Logo" class="logo-img">
+                SnakeArena
+            </div>
+        </header>
+        
+        <div class="leaderboard-container">
+            <h2 class="leaderboard-title">Top Snake Players</h2>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Score</th>
+                        <th>Wins</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <!-- Leaderboard data will be populated here -->
+                </tbody>
+            </table>
+            <button id="backToMenuButton" class="back-button">Back to Menu</button>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="index.js"></script>
+</body>
+</html>
