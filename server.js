@@ -306,8 +306,8 @@ function emitGameOver(roomName, winner, scoreData) {
 }
 
 // Change port to 80 to make it easier with ngrok
-const PORT = process.env.PORT || 80;
-server.listen(PORT, () => {
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server is running on port ${PORT}`);
-    console.log(`Open your browser and navigate to: http://localhost:${PORT}`);
 });
